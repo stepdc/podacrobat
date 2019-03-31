@@ -3,12 +3,13 @@ package acrobat
 import (
 	"fmt"
 
-	"github.com/stepdc/podacrobat/cmd/app"
+	"github.com/stepdc/podacrobat/cmd/app/config"
+
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
 
-func Run(pa *app.PodAcrobat) error {
+func Run(pa *config.PodAcrobat) error {
 	// incluster supported only
 	cfg, err := rest.InClusterConfig()
 	if err != nil {

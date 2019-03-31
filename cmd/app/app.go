@@ -8,19 +8,13 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/stepdc/podacrobat/cmd/app/config"
 
-	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/kubectl/util/logs"
 )
 
-type PodAcrobat struct {
-	Config
-	Client clientset.Interface
-}
-
 func NewAcrobatCommand(out io.Writer) *cobra.Command {
-	app := &PodAcrobat{}
+	app := &config.PodAcrobat{}
 	cmd := &cobra.Command{
 		Use:   "podacrobat",
 		Short: "podacrobat",
@@ -28,7 +22,7 @@ func NewAcrobatCommand(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			logs.InitLogs()
 			defer logs.FlushLogs()
-			err := func(app *PodAcrobat) error {
+			err := func(app *config.PodAcrobat) error {
 				return acrobat.Run(app)
 			}(app)
 			if err != nil {
@@ -43,10 +37,4 @@ func NewAcrobatCommand(out io.Writer) *cobra.Command {
 	app.AddFlags(flags)
 
 	return cmd
-}
-
-func (pa *PodAcrobat) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&pa.Policy, "policy", string(PodsCount), "nodes filter policy(use \"podscount\" for test)")
-	fs.StringVar(&pa.LowerThreshold, "lowerthreshold", "30", "lower threshold")
-	fs.StringVar(&pa.UpperThreshold, "upperthreshold", "50", "upper threshold")
 }
