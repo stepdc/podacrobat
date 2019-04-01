@@ -8,9 +8,10 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// sample algo for test
 type PodCountAlgo struct{}
 
-func (pac *PodCountAlgo) NeedReschedule(groupedPods map[string][]*v1.Pods, cfg config.Config) (bool, error) {
+func (pac *PodCountAlgo) NeedReschedule(groupedPods map[string][]*v1.Pod, cfg config.Config) (bool, error) {
 	l, err := strconv.Atoi(cfg.LowerThreshold)
 	if err != nil {
 		return false, err

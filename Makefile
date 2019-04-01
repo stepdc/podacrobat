@@ -6,4 +6,4 @@ all: build
 
 build:
 	mkdir -p make/output
-	go build -o make/output -ldflags '-X github.com/stepdc/podacrobat/app.Version=$(BUILD_NUMBER)' github.com/stepdc/podacrobat/cmd
+	go build -o make/output/podacrobat -ldflags '-X github.com/stepdc/podacrobat/app.Version=$(BUILD_NUMBER)' github.com/stepdc/podacrobat/cmd
