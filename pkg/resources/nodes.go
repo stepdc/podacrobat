@@ -77,15 +77,15 @@ func filterReady(nodes []*v1.Node) []*v1.Node {
 	return ret
 }
 
-func GroupPodsByNode(cli clientset.Interface, nodes []*v1.Node) (map[string][]*v1.Pod, error) {
-	ret := make(map[string][]*v1.Pod)
+func GroupPodsByNode(cli clientset.Interface, nodes []*v1.Node) (map[string]NodeInfoWithPods, error) {
+	ret := make(map[string]NodeInfoWithPods)
 
 	for _, node := range nodes {
 		pods, err := listNodePods(cli, node)
 		if err != nil {
 			return nil, fmt.Errorf("list pods on node %q faild: %v", node.Name, err)
 		}
-		ret[node.Name] = pods
+		ret[node.Name] = NodeInfoWithPods{Node: node, Pods: pods}
 	}
 
 	return ret, nil
@@ -108,3 +108,33 @@ func listNodePods(cli clientset.Interface, node *v1.Node) ([]*v1.Pod, error) {
 
 	return ret, nil
 }
+
+type NodeInfoWithPods struct {
+	Node *v1.Node
+	Pods []*v1.Pod
+}
+
+func (n *NodeInfoWithPods) BestEffortPods() []*v1.Pod {
+	var ret []*v1.Pod
+	for _, pod := range n.Pods {
+		if !IsBestEffortPod(pod) {
+			continue
+		}
+		ret = append(ret, pod)
+	}
+	return ret
+}
+
+
+func (n *NodeInfoWithPods) BurstablePods() []*v1.Pod {
+	var ret []*v1.Pod
+	for _, pod := range n.Pods {
+		if !IsBurstablePod(pod) {
+			continue
+		}
+		ret = append(ret, pod)
+	}
+	return ret
+}
+
+

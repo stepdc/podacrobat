@@ -288,12 +288,13 @@
 
 [[projects]]
   branch = "release-1.13"
-  digest = "1:95fde41d0faf790bf4f7fed355f91e47e5178aec07bbb09f42fee140dad0e630"
+  digest = "1:06b4aaf53fa7938b04d36d290cefc49f53d9a8118ac263da5638732fea028a3a"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
     "pkg/api/meta",
     "pkg/api/resource",
+    "pkg/apis/meta/internalversion",
     "pkg/apis/meta/v1",
     "pkg/apis/meta/v1/unstructured",
     "pkg/apis/meta/v1beta1",
@@ -399,9 +400,13 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:6991f5cbaa0d692757e7a8c4c2105fa35e1b37157ea65e431333f6ae67a959a4"
+  digest = "1:bd65254ae169dd62f7e0f84279c943a7cb917547b5f73e20c130410dfb40c02e"
   name = "k8s.io/kubernetes"
-  packages = ["pkg/kubectl/util/logs"]
+  packages = [
+    "pkg/apis/core",
+    "pkg/apis/core/v1/helper/qos",
+    "pkg/kubectl/util/logs",
+  ]
   pruneopts = "UT"
   revision = "641856db18352033a0d96dbc99153fa3b27298e5"
   version = "v1.14.0"
@@ -422,10 +427,12 @@
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "k8s.io/api/core/v1",
+    "k8s.io/api/policy/v1beta1",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/fields",
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/rest",
+    "k8s.io/kubernetes/pkg/apis/core/v1/helper/qos",
     "k8s.io/kubernetes/pkg/kubectl/util/logs",
   ]
   solver-name = "gps-cdcl"
