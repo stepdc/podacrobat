@@ -13,14 +13,6 @@
   version = "v1.2.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
-  name = "github.com/golang/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
-
-[[projects]]
   digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
   name = "github.com/golang/protobuf"
   packages = [
@@ -173,14 +165,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f6321364014431568a59b49b449d6ae60c017f3afa3f4ab787a5636853b16b1e"
+  digest = "1:641f7202c4626fb19f68ecbbbd493df0bfe2e38f97ecb4d5d3b16536ff0f84eb"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "9eb1bfa1ce65ae8a6ff3114b0aaf9a41a6cf3560"
+  revision = "e4093980e83e70784fc393a93d5620e2654097f0"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -288,7 +280,15 @@
 
 [[projects]]
   branch = "release-1.13"
-  digest = "1:06b4aaf53fa7938b04d36d290cefc49f53d9a8118ac263da5638732fea028a3a"
+  digest = "1:5c8e30a40644c03c864f2a9e3d32b6346ab05c8cafafd1833954c3957abcb160"
+  name = "k8s.io/apiextensions-apiserver"
+  packages = ["pkg/features"]
+  pruneopts = "UT"
+  revision = "bfb440be4b874c001bc64ea4b3324d37ab3c98dd"
+
+[[projects]]
+  branch = "release-1.13"
+  digest = "1:5d82b2e350b8d2947dd3e1a8fc8725adceeefb276d7cb9e0574153453963a57d"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -323,7 +323,6 @@
     "pkg/util/sets",
     "pkg/util/validation",
     "pkg/util/validation/field",
-    "pkg/util/wait",
     "pkg/util/yaml",
     "pkg/version",
     "pkg/watch",
@@ -331,6 +330,17 @@
   ]
   pruneopts = "UT"
   revision = "86fb29eff6288413d76bd8506874fddd9fccdff0"
+
+[[projects]]
+  branch = "release-1.13"
+  digest = "1:4d486240e1daefb3405004098abcfa3bcadf29fcb4b6e034d9f1f24d3cd3bc5d"
+  name = "k8s.io/apiserver"
+  packages = [
+    "pkg/features",
+    "pkg/util/feature",
+  ]
+  pruneopts = "UT"
+  revision = "a4358799e4fec459cf9babfca7c5acf3eed2cef8"
 
 [[projects]]
   digest = "1:67a85fd36cd1803b7421e6179e55e0b6668417ab338e20451cec0988f0762c63"
@@ -400,16 +410,18 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:bd65254ae169dd62f7e0f84279c943a7cb917547b5f73e20c130410dfb40c02e"
+  branch = "release-1.13"
+  digest = "1:461bf75d0fc33a3325c3cc9d8766093e50bff9af290622f4526f047520df0bcd"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/apis/core",
     "pkg/apis/core/v1/helper/qos",
-    "pkg/kubectl/util/logs",
+    "pkg/apis/scheduling",
+    "pkg/features",
+    "pkg/kubelet/types",
   ]
   pruneopts = "UT"
-  revision = "641856db18352033a0d96dbc99153fa3b27298e5"
-  version = "v1.14.0"
+  revision = "18789bfb601b5fccaa3ffadf4423110bdbcc9efd"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
@@ -423,7 +435,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/golang/glog",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "k8s.io/api/core/v1",
@@ -433,7 +444,7 @@
     "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/rest",
     "k8s.io/kubernetes/pkg/apis/core/v1/helper/qos",
-    "k8s.io/kubernetes/pkg/kubectl/util/logs",
+    "k8s.io/kubernetes/pkg/kubelet/types",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

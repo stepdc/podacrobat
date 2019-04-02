@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: podacrobat-job
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      name: podacrobat-job-pod
+    spec:
+      containers:
+        - name: podacrobat
+          image: stepdc/podacrobat:20190402184425
+          command:
+            - "/app/podacrobat"
+      restartPolicy: "Never"
+      serviceAccountName: podacrobat-sa

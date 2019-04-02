@@ -3,14 +3,11 @@ package app
 import (
 	"flag"
 	"io"
+	"log"
 
-	"github.com/stepdc/podacrobat/pkg/acrobat"
-
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/stepdc/podacrobat/cmd/app/config"
-
-	"k8s.io/kubernetes/pkg/kubectl/util/logs"
+	"github.com/stepdc/podacrobat/pkg/acrobat"
 )
 
 func NewAcrobatCommand(out io.Writer) *cobra.Command {
@@ -20,13 +17,9 @@ func NewAcrobatCommand(out io.Writer) *cobra.Command {
 		Short: "podacrobat",
 		Long:  "podacrobat",
 		Run: func(cmd *cobra.Command, args []string) {
-			logs.InitLogs()
-			defer logs.FlushLogs()
-			err := func(app *config.PodAcrobat) error {
-				return acrobat.Run(app)
-			}(app)
+			err := Run(app)
 			if err != nil {
-				glog.Errorf("%v", err)
+				log.Printf("%v", err)
 			}
 		},
 	}
@@ -37,4 +30,8 @@ func NewAcrobatCommand(out io.Writer) *cobra.Command {
 	app.AddFlags(flags)
 
 	return cmd
+}
+
+func Run(app *config.PodAcrobat) error {
+	return acrobat.Run(app)
 }

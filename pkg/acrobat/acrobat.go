@@ -3,6 +3,7 @@ package acrobat
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/stepdc/podacrobat/cmd/app/config"
@@ -16,6 +17,7 @@ import (
 const defaultTimeout = 30 * time.Second
 
 func Run(pa *config.PodAcrobat) error {
+	log.Printf("start balance")
 	// incluster supported only
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
@@ -30,11 +32,13 @@ func Run(pa *config.PodAcrobat) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
+	log.Printf("start fetch nodes")
 	avaliableNodes, err := resources.ListNodes(ctx, pa.Client)
 	if err != nil {
 		return fmt.Errorf("filter nodes failed: %v", err)
 	}
 	if len(avaliableNodes) == 0 {
+		log.Printf("no avaiable nodes found")
 		// noready nodes
 		return nil
 	}
@@ -45,10 +49,7 @@ func Run(pa *config.PodAcrobat) error {
 	}
 
 	// TODO: use algo interface here
+	log.Printf("evict pods")
 	algo := count.PodCountAlgo{}
-	if resched, err := algo.NeedReschedule(groupedPods, pa.Config); err != nil || !resched {
-		return err
-	}
-
-	return nil
+	return algo.Run(pa.Client, groupedPods)
 }

@@ -50,9 +50,17 @@
   name = "k8s.io/client-go"
   version = "10.0.0"
 
-[[constraint]]
+[[override]]
+  branch = "release-1.13"
   name = "k8s.io/kubernetes"
-  version = "1.13.0"
+
+[[override]]
+  branch = "release-1.13"
+  name = "k8s.io/apiextensions-apiserver"
+
+[[override]]
+  branch = "release-1.13"
+  name = "k8s.io/apiserver"
 
 [prune]
   go-tests = true
