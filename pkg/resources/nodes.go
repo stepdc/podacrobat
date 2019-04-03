@@ -125,7 +125,6 @@ func (n *NodeInfoWithPods) BestEffortPods() []*v1.Pod {
 	return ret
 }
 
-
 func (n *NodeInfoWithPods) BurstablePods() []*v1.Pod {
 	var ret []*v1.Pod
 	for _, pod := range n.Pods {
@@ -137,4 +136,32 @@ func (n *NodeInfoWithPods) BurstablePods() []*v1.Pod {
 	return ret
 }
 
+func IsIdleNode(usage, capacity v1.ResourceList, cpuThreshold, memThreshold float64) bool {
+	cpu, mem := UsagePercentage(usage, capacity)
 
+	if cpu > cpuThreshold || mem > memThreshold {
+		return false
+	}
+
+	return true
+}
+
+func IsEvictNode(usage, capacity v1.ResourceList, cpuThreshold, memThreshold float64) bool {
+	cpu, mem := UsagePercentage(usage, capacity)
+
+	if cpu < cpuThreshold || mem < memThreshold {
+		return false
+	}
+
+	return true
+}
+
+func UsagePercentage(usage, capacity v1.ResourceList) (float64, float64) {
+	cpuUsag := usage[v1.ResourceCPU]
+	memUsage := usage[v1.ResourceMemory]
+	cpuCapacity := capacity[v1.ResourceCPU]
+	memCapacity := capacity[v1.ResourceMemory]
+	cpu := float64(cpuUsag.MilliValue()) * 100 / float64(cpuCapacity.MilliValue())
+	mem := float64(memUsage.Value()) * 100 / float64(memCapacity.Value())
+	return cpu, mem
+}

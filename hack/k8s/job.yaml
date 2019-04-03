@@ -10,8 +10,11 @@ spec:
     spec:
       containers:
         - name: podacrobat
-          image: stepdc/podacrobat:20190402184425
+          image: stepdc/podacrobat:latest
           command:
             - "/app/podacrobat"
+            - "--policy=podscount"
+            - "--lowerthreshold=29"
+            - "--upperthreshold=59"
       restartPolicy: "Never"
       serviceAccountName: podacrobat-sa

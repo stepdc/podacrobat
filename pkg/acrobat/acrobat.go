@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/stepdc/podacrobat/pkg/algorithms/util"
+
 	"github.com/stepdc/podacrobat/cmd/app/config"
 	"github.com/stepdc/podacrobat/pkg/algorithms/count"
 	"github.com/stepdc/podacrobat/pkg/resources"
@@ -50,6 +52,17 @@ func Run(pa *config.PodAcrobat) error {
 
 	// TODO: use algo interface here
 	log.Printf("evict pods")
-	algo := count.PodCountAlgo{}
+	var algo algoInterface
+	if pa.Config.Policy == config.PodsCount {
+		algo = count.NewPodCountAlgo(pa.Config)
+	} else if pa.Config.Policy == config.NodesLoad {
+		algo = util.NewCpuMemUtilAlgo(pa.Config)
+	} else {
+		log.Fatalf("unsupported policy: %q", pa.Config.Policy)
+	}
 	return algo.Run(pa.Client, groupedPods)
+}
+
+type algoInterface interface {
+	Run(cli clientset.Interface, nodePods map[string]resources.NodeInfoWithPods) error
 }

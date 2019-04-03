@@ -9,6 +9,9 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/apis/core/v1/helper/qos"
 	"k8s.io/kubernetes/pkg/kubelet/types"
+
+	apimresource "k8s.io/apimachinery/pkg/api/resource"
+	k8sresource "k8s.io/kubernetes/pkg/api/v1/resource"
 )
 
 func Evictable(pod *v1.Pod) bool {
@@ -56,10 +59,6 @@ func IsBurstablePod(pod *v1.Pod) bool {
 	return qos.GetPodQOS(pod) == v1.PodQOSBurstable
 }
 
-func IsGuaranteedPod(pod *v1.Pod) bool {
-	return qos.GetPodQOS(pod) == v1.PodQOSGuaranteed
-}
-
 func Evict(cli clientset.Interface, pod *v1.Pod) error {
 	ev := policyvb1.Eviction{
 		TypeMeta: metav1.TypeMeta{
@@ -78,7 +77,7 @@ func Evict(cli clientset.Interface, pod *v1.Pod) error {
 	return nil
 }
 
-func EvictPods(cli clientset.Interface, pods []*v1.Pod, ownerRefsSet map[string]struct{}) ([]*v1.Pod, error) {
+func EvictPods(cli clientset.Interface, pods []*v1.Pod, ownerRefsSet map[string]struct{}) ([]*v1.Pod, map[string]struct{}, error) {
 	if ownerRefsSet == nil {
 		ownerRefsSet = make(map[string]struct{})
 	}
@@ -98,7 +97,7 @@ func EvictPods(cli clientset.Interface, pods []*v1.Pod, ownerRefsSet map[string]
 		}
 		err := Evict(cli, pod)
 		if err != nil {
-			return nil, err
+			return nil, ownerRefsSet, err
 		}
 
 		for _, ref := range pod.OwnerReferences {
@@ -107,5 +106,61 @@ func EvictPods(cli clientset.Interface, pods []*v1.Pod, ownerRefsSet map[string]
 
 		evicted = append(evicted, pod)
 	}
-	return evicted, nil
+	return evicted, ownerRefsSet, nil
+}
+
+func EvictTargetQuantityPods(cli clientset.Interface, pods []*v1.Pod,
+	targetCpu, targetMem float64, ownerRefsSet map[string]struct{}) ([]*v1.Pod, map[string]struct{}, error) {
+
+	if ownerRefsSet == nil {
+		ownerRefsSet = make(map[string]struct{})
+	}
+	pods = FilterEvictablePods(pods)
+	var evicted []*v1.Pod
+	for _, pod := range pods {
+		var refSeen bool
+		for _, ref := range pod.OwnerReferences {
+			if _, ok := ownerRefsSet[string(ref.UID)]; ok {
+				refSeen = true
+				break
+			}
+		}
+		// evict one pod for the same owner reference
+		if refSeen {
+			continue
+		}
+		err := Evict(cli, pod)
+		if err != nil {
+			return nil, ownerRefsSet, err
+		}
+		evicted = append(evicted, pod)
+
+		targetCpu -= float64(k8sresource.GetResourceRequest(pod, v1.ResourceCPU))
+		targetMem -= float64(k8sresource.GetResourceRequest(pod, v1.ResourceMemory))
+		if targetCpu <= 0 || targetMem <= 0 {
+			break
+		}
+	}
+	return evicted, ownerRefsSet, nil
+}
+
+func PodsCpuMemRequest(pods []*v1.Pod) v1.ResourceList {
+	ret := make(map[v1.ResourceName]apimresource.Quantity)
+
+	for _, pod := range pods {
+		requestResource, _ := k8sresource.PodRequestsAndLimits(pod)
+		for resourceName, qty := range requestResource {
+			if resourceName != v1.ResourceCPU && resourceName != v1.ResourceMemory {
+				continue
+			}
+			v, ok := ret[resourceName]
+			if !ok {
+				ret[resourceName] = qty
+				continue
+			}
+			v.Add(qty)
+			ret[resourceName] = v
+		}
+	}
+	return v1.ResourceList(ret)
 }

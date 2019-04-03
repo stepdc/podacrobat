@@ -5,6 +5,8 @@ import (
 	"log"
 	"strconv"
 
+	v1 "k8s.io/api/core/v1"
+
 	"github.com/stepdc/podacrobat/cmd/app/config"
 	"github.com/stepdc/podacrobat/pkg/resources"
 
@@ -21,8 +23,8 @@ type PodCountAlgo struct {
 }
 
 func NewPodCountAlgo(cfg config.Config) *PodCountAlgo {
-	l, _ := strconv.Atoi(cfg.LowerThreshold)
-	u, _ := strconv.Atoi(cfg.UpperThreshold)
+	l, _ := strconv.Atoi(cfg.IdleCountThreshold)
+	u, _ := strconv.Atoi(cfg.EvictCountThreshold)
 	return &PodCountAlgo{
 		option: countOptions{
 			lower: l,
@@ -63,33 +65,38 @@ func (pac *PodCountAlgo) NeedReschedule(nodePods map[string]resources.NodeInfoWi
 }
 
 func (pac *PodCountAlgo) ClassifyNodes(nodePods map[string]resources.NodeInfoWithPods) (map[string]resources.NodeInfoWithPods, map[string]resources.NodeInfoWithPods) {
-
-	lowerNodes := make(map[string]resources.NodeInfoWithPods)
-	loadNodes := make(map[string]resources.NodeInfoWithPods)
+	idleNodes := make(map[string]resources.NodeInfoWithPods)
+	evictNodes := make(map[string]resources.NodeInfoWithPods)
 
 	for nodeName, info := range nodePods {
+		if info.Node.Spec.Unschedulable {
+			continue
+		}
 		if len(info.Pods) <= pac.option.lower {
-			lowerNodes[nodeName] = info
+			idleNodes[nodeName] = info
 		}
 		if len(info.Pods) >= pac.option.upper {
-			loadNodes[nodeName] = info
+			evictNodes[nodeName] = info
 		}
 	}
 
-	return lowerNodes, loadNodes
+	return idleNodes, evictNodes
 }
 
-func (pac *PodCountAlgo) Evict(cli clientset.Interface, lowerNodes, loadNodes map[string]resources.NodeInfoWithPods) error {
-	total := totalPodCapacity(lowerNodes, pac.option.lower)
-	shouldEvictTotal := mostEvictCount(loadNodes, pac.option.upper)
+func (pac *PodCountAlgo) Evict(cli clientset.Interface, idleNodes, evictNodes map[string]resources.NodeInfoWithPods) error {
+	total := totalPodCapacity(idleNodes, pac.option.lower)
+	shouldEvictTotal := mostEvictCount(evictNodes, pac.option.upper)
 
+	var refsSet map[string]struct{}
 	// evict BestEffort & Burstable pods only
-	for _, info := range loadNodes {
+	for _, info := range evictNodes {
 		if total <= 0 || shouldEvictTotal <= 0 {
 			return nil
 		}
 		bePods := info.BestEffortPods()
-		evictedBePods, err := resources.EvictPods(cli, bePods, nil)
+		var evictedBePods []*v1.Pod
+		var err error
+		evictedBePods, refsSet, err = resources.EvictPods(cli, bePods, refsSet)
 		if err != nil {
 			err = fmt.Errorf("evict pods failed: %v", err)
 			log.Print(err)
@@ -103,7 +110,8 @@ func (pac *PodCountAlgo) Evict(cli clientset.Interface, lowerNodes, loadNodes ma
 			return nil
 		}
 		buPods := info.BurstablePods()
-		evictedBuPods, err := resources.EvictPods(cli, buPods, nil)
+		var evictedBuPods []*v1.Pod
+		evictedBuPods, refsSet, err = resources.EvictPods(cli, buPods, nil)
 		if err != nil {
 			err = fmt.Errorf("evict pods failed: %v", err)
 			log.Print(err)

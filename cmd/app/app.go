@@ -17,6 +17,9 @@ func NewAcrobatCommand(out io.Writer) *cobra.Command {
 		Short: "podacrobat",
 		Long:  "podacrobat",
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := app.Config.Validate(); err != nil {
+				log.Fatalf("validate config failed: %v", err)
+			}
 			err := Run(app)
 			if err != nil {
 				log.Printf("%v", err)
