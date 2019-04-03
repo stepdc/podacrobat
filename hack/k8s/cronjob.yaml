@@ -1,0 +1,23 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: podacrobat-cron-job
+  namespace: kube-system
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: podacrobat
+              image: stepdc/podacrobat:latest
+              command:
+              - "/app/podacrobat"
+              - "--policy=nodesutil"
+              - "--util-cpu-idle-threshold=20"
+              - "--util-cpu-evict-threshold=60"
+              - "--util-memory-idle-threshold=20"
+              - "--util-memory-evict-threshold=60"
+          restartPolicy: "Never"
+          serviceAccountName: podacrobat-sa
