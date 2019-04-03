@@ -3,13 +3,11 @@ package util
 import (
 	"fmt"
 	"log"
-	"strconv"
-
-	v1 "k8s.io/api/core/v1"
 
 	"github.com/stepdc/podacrobat/cmd/app/config"
 	"github.com/stepdc/podacrobat/pkg/resources"
 
+	v1 "k8s.io/api/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 )
 
@@ -23,21 +21,14 @@ type CpuMemUtilAlgo struct {
 }
 
 func NewCpuMemUtilAlgo(cfg config.Config) *CpuMemUtilAlgo {
-	ce, _ := strconv.ParseFloat(cfg.CpuUtilEvictThreshold, 64)
-	ci, _ := strconv.ParseFloat(cfg.CpuUtilIdleThreshold, 64)
-	me, _ := strconv.ParseFloat(cfg.MemUtilEvictThreshold, 64)
-	mi, _ := strconv.ParseFloat(cfg.MemUtilIdleThreshold, 64)
-
-	algo := CpuMemUtilAlgo{
+	return &CpuMemUtilAlgo{
 		cmuOption{
-			cpuEvictThreshold: ce,
-			cpuIdleThreshold:  ci,
-			memEvictThreshold: me,
-			memIdleThreshold:  mi,
+			cpuEvictThreshold: cfg.CpuUtilEvictThreshold,
+			cpuIdleThreshold:  cfg.CpuUtilIdleThreshold,
+			memEvictThreshold: cfg.MemUtilEvictThreshold,
+			memIdleThreshold:  cfg.MemUtilIdleThreshold,
 		},
 	}
-
-	return &algo
 }
 
 func (cmu *CpuMemUtilAlgo) Run(cli clientset.Interface, nodePods map[string]resources.NodeInfoWithPods) error {

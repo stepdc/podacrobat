@@ -3,7 +3,6 @@ package count
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	v1 "k8s.io/api/core/v1"
 
@@ -23,12 +22,10 @@ type PodCountAlgo struct {
 }
 
 func NewPodCountAlgo(cfg config.Config) *PodCountAlgo {
-	l, _ := strconv.Atoi(cfg.IdleCountThreshold)
-	u, _ := strconv.Atoi(cfg.EvictCountThreshold)
 	return &PodCountAlgo{
 		option: countOptions{
-			lower: l,
-			upper: u,
+			lower: cfg.IdleCountThreshold,
+			upper: cfg.EvictCountThreshold,
 		},
 	}
 }
