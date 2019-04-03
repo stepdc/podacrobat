@@ -10,7 +10,7 @@ type Policy string
 
 const (
 	PodsCount string = "podscount"
-	NodesLoad string = "nodeutil"
+	NodesLoad string = "nodesutil"
 )
 
 type Config struct {
